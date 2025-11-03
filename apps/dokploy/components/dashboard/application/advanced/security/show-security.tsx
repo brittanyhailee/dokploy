@@ -1,5 +1,7 @@
 import { DialogAction } from "@/components/shared/dialog-action";
 import { Button } from "@/components/ui/button";
+import { ToggleVisibilityInput } from "@/components/shared/toggle-visibility-input";
+
 import {
 	Card,
 	CardContent,
@@ -69,7 +71,10 @@ export const ShowSecurity = ({ applicationId }: Props) => {
 											<div className="flex flex-col gap-1">
 												<span className="font-medium">Password</span>
 												<span className="text-sm text-muted-foreground">
-													{security.password}
+													<ToggleVisibilityInput
+														disabled
+														value={security.password}
+													/>
 												</span>
 											</div>
 										</div>
