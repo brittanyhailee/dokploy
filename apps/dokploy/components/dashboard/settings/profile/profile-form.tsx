@@ -32,9 +32,14 @@ import { Disable2FA } from "./disable-2fa";
 import { Enable2FA } from "./enable-2fa";
 
 const profileSchema = z.object({
-	email: z.string(),
+	email: z.string()
+		.min(1, {message: "Email is required"})
+		.email({message: "Valid Email is required"})
+		.transform(val=>val.toLowerCase()),
+		
 	password: z.string().nullable(),
 	currentPassword: z.string().nullable(),
+	name: z.string().optional(),
 	image: z.string().optional(),
 	allowImpersonation: z.boolean().optional().default(false),
 });
@@ -81,6 +86,7 @@ export const ProfileForm = () => {
 		defaultValues: {
 			email: data?.user?.email || "",
 			password: "",
+			name: data?.user?.name || "",
 			image: data?.user?.image || "",
 			currentPassword: "",
 			allowImpersonation: data?.user?.allowImpersonation || false,
@@ -94,6 +100,7 @@ export const ProfileForm = () => {
 				{
 					email: data?.user?.email || "",
 					password: form.getValues("password") || "",
+					name: data?.user?.name || "",
 					image: data?.user?.image || "",
 					currentPassword: form.getValues("currentPassword") || "",
 					allowImpersonation: data?.user?.allowImpersonation,
@@ -116,6 +123,7 @@ export const ProfileForm = () => {
 		await mutateAsync({
 			email: values.email.toLowerCase(),
 			password: values.password || undefined,
+			name: values.name,
 			image: values.image,
 			currentPassword: values.currentPassword || undefined,
 			allowImpersonation: values.allowImpersonation,
@@ -126,6 +134,7 @@ export const ProfileForm = () => {
 				form.reset({
 					email: values.email,
 					password: "",
+					name: values.name,
 					image: values.image,
 					currentPassword: "",
 				});
@@ -166,6 +175,25 @@ export const ProfileForm = () => {
 										onSubmit={form.handleSubmit(onSubmit)}
 										className="grid gap-4"
 									>
+										<FormField
+												control={form.control}
+												name="name"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Name</FormLabel>
+														<FormControl>
+															<Input
+																type="name"
+																placeholder={t("Name")}
+																{...field}
+																value={field.value || ""}
+															/>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+
 										<div className="space-y-4">
 											<FormField
 												control={form.control}
