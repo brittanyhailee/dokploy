@@ -409,12 +409,10 @@ export const HandleSchedules = ({ id, scheduleId, scheduleType }: Props) => {
 									</FormLabel>
 									<div className="flex flex-col gap-2">
 										<Select
-											value={getSelectValue(field.value)}  // Add this line!
+											value={getSelectValue(field.value)}  
 											onValueChange={(value) => {
 												field.onChange(value);
-											}}
-
-										>
+											}}>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue placeholder="Select a predefined schedule" />
