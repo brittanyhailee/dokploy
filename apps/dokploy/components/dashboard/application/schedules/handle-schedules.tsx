@@ -56,6 +56,7 @@ export const commonCronExpressions = [
 	{ label: "Every month on the 1st at midnight", value: "0 0 1 * *" },
 	{ label: "Every 15 minutes", value: "*/15 * * * *" },
 	{ label: "Every weekday at midnight", value: "0 0 * * 1-5" },
+	{ label: "Custom", value: "custom"}
 ];
 
 const formSchema = z
@@ -113,6 +114,17 @@ interface Props {
 	scheduleId?: string;
 	scheduleType?: "application" | "compose" | "server" | "dokploy-server";
 }
+
+const getSelectValue = (cronExpression: string) => {
+	if (cronExpression === "") {
+		return "";
+	}
+  const match = commonCronExpressions.find((expr) => 
+	expr.value === cronExpression);
+
+  return match ? match.value : "custom";
+
+};
 
 export const HandleSchedules = ({ id, scheduleId, scheduleType }: Props) => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -397,9 +409,11 @@ export const HandleSchedules = ({ id, scheduleId, scheduleType }: Props) => {
 									</FormLabel>
 									<div className="flex flex-col gap-2">
 										<Select
+											value={getSelectValue(field.value)}  // Add this line!
 											onValueChange={(value) => {
 												field.onChange(value);
 											}}
+
 										>
 											<FormControl>
 												<SelectTrigger>
