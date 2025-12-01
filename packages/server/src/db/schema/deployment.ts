@@ -106,6 +106,17 @@ const schema = createInsertSchema(deployments, {
 	previewDeploymentId: z.string(),
 });
 
+export const apiDeploymentTitleAndDescription = z.object({
+	title: z
+		.string()
+		.max(200, "Title must be 200 characters or less")
+		.optional(),
+	description: z
+		.string()
+		.max(2000, "Description must be 2000 characters or less")
+		.optional(),
+});
+
 export const apiCreateDeployment = schema
 	.pick({
 		title: true,
