@@ -47,11 +47,15 @@ export const aiRouter = createTRPCRouter({
 		}),
 
 	getModels: protectedProcedure
-		.input(z.object({ apiUrl: z.string().min(1), apiKey: z.string().min(1) }))
+		.input(z.object({ apiUrl: z.string().min(1), apiKey: z.string().optional() }))
 		.query(async ({ input }) => {
 			try {
+				const isOllama = input.apiUrl.includes(":11434") || input.apiUrl.toLowerCase().includes("ollama");
 				const headers = getProviderHeaders(input.apiUrl, input.apiKey);
-				const response = await fetch(`${input.apiUrl}/models`, { headers });
+
+				// Ollama uses /api/tags endpoint, others use /models
+				const modelsEndpoint = isOllama ? "/api/tags" : "/models";
+				const response = await fetch(`${input.apiUrl}${modelsEndpoint}`, { headers });
 
 				if (!response.ok) {
 					const errorText = await response.text();
@@ -71,7 +75,7 @@ export const aiRouter = createTRPCRouter({
 
 				if (res.models) {
 					return res.models.map((model: any) => ({
-						id: model.id || model.name,
+						id: model.id || model.model || model.name,
 						object: "model",
 						created: Date.now(),
 						owned_by: "provider",

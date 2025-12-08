@@ -5,7 +5,7 @@ import { createDeepInfra } from "@ai-sdk/deepinfra";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { createOllama } from "ollama-ai-provider";
+import { createOllama } from "ai-sdk-ollama";
 
 function getProviderName(apiUrl: string) {
 	if (apiUrl.includes("api.openai.com")) return "openai";
@@ -82,12 +82,17 @@ export function selectAIProvider(config: { apiUrl: string; apiKey: string }) {
 
 export const getProviderHeaders = (
 	apiUrl: string,
-	apiKey: string,
+	apiKey?: string,
 ): Record<string, string> => {
+
+	if (apiUrl.includes("localhost:11434") || apiUrl.includes("ollama")) {
+		return {};
+	}
+
 	// Anthropic
 	if (apiUrl.includes("anthropic")) {
 		return {
-			"x-api-key": apiKey,
+			"x-api-key": apiKey || "",
 			"anthropic-version": "2023-06-01",
 		};
 	}
@@ -95,13 +100,13 @@ export const getProviderHeaders = (
 	// Mistral
 	if (apiUrl.includes("mistral")) {
 		return {
-			Authorization: apiKey,
+			Authorization: apiKey || "",
 		};
 	}
 
 	// Default (OpenAI style)
 	return {
-		Authorization: `Bearer ${apiKey}`,
+		Authorization: `Bearer ${apiKey || ""}`,
 	};
 };
 export interface Model {
