@@ -35,12 +35,23 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+const isOllamaUrl = (url: string) =>
+	url?.includes(':11434') || url?.toLowerCase().includes('ollama');
+
 const Schema = z.object({
 	name: z.string().min(1, { message: "Name is required" }),
 	apiUrl: z.string().url({ message: "Please enter a valid URL" }),
-	apiKey: z.string().min(1, { message: "API Key is required" }),
+	apiKey: z.string().optional(),
 	model: z.string().min(1, { message: "Model is required" }),
 	isEnabled: z.boolean(),
+}).superRefine((data, ctx) => {
+	if (!isOllamaUrl(data.apiUrl) && (!data.apiKey || data.apiKey.length === 0)) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "API Key is required",
+			path: ["apiKey"],
+		});
+	}
 });
 
 type Schema = z.infer<typeof Schema>;
@@ -71,7 +82,7 @@ export const HandleAi = ({ aiId }: Props) => {
 			name: "",
 			apiUrl: "",
 			apiKey: "",
-			model: "gpt-3.5-turbo",
+			model: "",
 			isEnabled: true,
 		},
 	});
@@ -79,15 +90,31 @@ export const HandleAi = ({ aiId }: Props) => {
 	useEffect(() => {
 		form.reset({
 			name: data?.name ?? "",
-			apiUrl: data?.apiUrl ?? "https://api.openai.com/v1",
+			apiUrl: data?.apiUrl ?? "",
 			apiKey: data?.apiKey ?? "",
-			model: data?.model ?? "gpt-3.5-turbo",
+			model: data?.model ?? "",
 			isEnabled: data?.isEnabled ?? true,
 		});
 	}, [aiId, form, data]);
 
+	useEffect(() => {
+    if (open && !aiId) {
+        form.reset({
+            name: "",
+            apiUrl: "",
+            apiKey: "",
+            model: "",
+            isEnabled: true,
+        });
+        setError(null);  // Also clear any previous errors
+    }
+}, [open, aiId, form]);
+
 	const apiUrl = form.watch("apiUrl");
 	const apiKey = form.watch("apiKey");
+	const isOllama = apiUrl?.includes(':11434') || apiUrl?.toLowerCase().includes('ollama');
+
+
 
 	const { data: models, isLoading: isLoadingServerModels } =
 		api.ai.getModels.useQuery(
@@ -96,7 +123,7 @@ export const HandleAi = ({ aiId }: Props) => {
 				apiKey: apiKey ?? "",
 			},
 			{
-				enabled: !!apiUrl && !!apiKey,
+				enabled: !!apiUrl && (isOllama || !!apiKey),
 				onError: (error) => {
 					setError(`Failed to fetch models: ${error.message}`);
 				},
@@ -121,11 +148,15 @@ export const HandleAi = ({ aiId }: Props) => {
 			utils.ai.getAll.invalidate();
 			toast.success("AI settings saved successfully");
 			refetch();
+			if (!aiId) {
+            	form.reset();
+        	}
 			setOpen(false);
 		} catch (error) {
 			toast.error("Failed to save AI settings", {
 				description: error instanceof Error ? error.message : "Unknown error",
 			});
+		
 		}
 	};
 
@@ -191,22 +222,28 @@ export const HandleAi = ({ aiId }: Props) => {
 							)}
 						/>
 
+						{!isOllama && ( 
 						<FormField
 							control={form.control}
 							name="apiKey"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>API Key</FormLabel>
+									<FormLabel>API Key 
+
+									</FormLabel>
 									<FormControl>
 										<Input type="password" placeholder="sk-..." {...field} />
 									</FormControl>
 									<FormDescription>
 										Your API key for authentication
+									
+
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
+						)}
 
 						{isLoadingServerModels && (
 							<span className="text-sm text-muted-foreground">
@@ -243,6 +280,12 @@ export const HandleAi = ({ aiId }: Props) => {
 									</FormItem>
 								)}
 							/>
+						)}
+
+						{!isLoadingServerModels && models && models.length === 0 && apiUrl && (isOllama || apiKey) && (
+							<span className="text-sm text-muted-foreground">
+								No models found. {isOllama ? "Make sure Ollama is running and has models installed." : "Please check your API URL and key."}
+							</span>
 						)}
 
 						<FormField

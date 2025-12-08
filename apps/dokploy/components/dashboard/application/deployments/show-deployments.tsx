@@ -132,22 +132,27 @@ export const ShowDeployments = ({
 								key={deployment.deploymentId}
 								className="flex items-center justify-between rounded-lg border p-4 gap-2"
 							>
-								<div className="flex flex-col">
-									<span className="flex items-center gap-4 font-medium capitalize text-foreground">
-										{index + 1}. {deployment.status}
+								<div className="flex flex-col gap-1">
+									<div className="flex items-center gap-2">
+										<span className="font-semibold text-base text-foreground">
+											{deployment.title}
+										</span>
 										<StatusTooltip
 											status={deployment?.status}
 											className="size-2.5"
 										/>
-									</span>
-									<span className="text-sm text-muted-foreground">
-										{deployment.title}
-									</span>
+									</div>
 									{deployment.description && (
-										<span className="break-all text-sm text-muted-foreground">
+										<span className="text-sm text-muted-foreground">
 											{deployment.description}
 										</span>
 									)}
+									<span className="text-xs text-muted-foreground capitalize flex items-center gap-2">
+										<Badge variant="secondary" className="text-[10px]">
+											{index + 1}
+										</Badge>
+										Status: {deployment.status}
+									</span>
 								</div>
 								<div className="flex flex-col items-end gap-2">
 									<div className="text-sm capitalize text-muted-foreground flex items-center gap-2">
